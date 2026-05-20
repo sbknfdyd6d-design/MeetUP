@@ -1,0 +1,56 @@
+body {
+    background: #121212;
+    color: white;
+    font-family: Arial;
+}
+
+.container {
+    width: 50%;
+    margin: auto;
+    padding-top: 50px;
+}
+
+button {
+    background: gold;
+    color: black;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+button:hover {
+    box-shadow: 0 0 10px gold;
+}
+
+input,
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    box-sizing: border-box;
+}
+
+.event-card {
+    background: #1e1e1e;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 10px;
+}
+
+input.datum,
+input.uhr {
+    width:20%;
+    display: inline-block;
+    position: middle;
+}
+
+input.titel,
+input.beschreibung {
+    width: 374px;
+    display: block;
+    margin-top: 10px;
+}
+
+.but {
+    margin-top: 10px;
+}
