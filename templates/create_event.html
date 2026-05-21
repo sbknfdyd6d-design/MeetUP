@@ -8,21 +8,22 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container-small">
 
     <h1>Event erstellen</h1>
 
     <form method="POST">
 
-        <input class="titel" type="text" name="title" placeholder="Titel" required>
+        <input type="text" name="title" placeholder="Titel" required>
 
-        <input class="datum" type="date" name="date" required>
-        
-        <input class="uhr" type="time" name="time" required>
+        <div class="date-time-row">
+            <input type="date" name="date" required>
+            <input type="time" name="time" required>
+        </div>
 
-        <input class="beschreibung" name="description" placeholder="Beschreibung"></input>
+        <input name="description" placeholder="Beschreibung">
 
-        <button class= "but" type="submit">Erstellen</button>
+        <button class="but" type="submit">Erstellen</button>
         <button class="but" type="button" onclick='window.location.href="{{ url_for("index") }}";'>Abbrechen</button>
 
     </form>

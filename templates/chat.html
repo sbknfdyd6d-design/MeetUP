@@ -3,70 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title>Chat</title>
-
-    <link
-        rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}">
-        <link rel="icon" href="{{ url_for('static', filename='meetuplogo.svg') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='meetuplogo.svg') }}">
 </head>
 <body>
 
 <div class="container">
-
     <h1>Gruppenchat</h1>
+    <p style="color: gold;">Eingeloggt als <strong>{{ username }}</strong></p>
 
     <form method="POST">
-
-        <input
-            type="text"
-            name="username"
-            placeholder="Name"
-            required>
-
-        <input
-            name="text"
-            placeholder="Nachricht"
-            required>
-        </input>
-
-        <button type="submit">
-            Senden
-        </button>
+        <input name="text" placeholder="Nachricht" required>
+        <button type="submit">Senden</button>
         <button class="but" type="button" onclick='window.location.href="{{ url_for("index") }}";'>Home</button>
     </form>
 
-<hr>
+    <hr>
 
-<div id="chat-box">
+    <div id="chat-box">
+        {% for message in messages %}
+            <div class="event-card">
+                <h3>{{ message.username }}</h3>
+                <p>{{ message.text }}</p>
+            </div>
+        {% endfor %}
+    </div>
 
-    {% for message in messages %}
-
-        <div class="event-card">
-
-            <h3>{{ message.username }}</h3>
-
-            <p>{{ message.text }}</p>
-
-        </div>
-
-    {% endfor %}
-
+    <script>
+    async function loadMessages() {
+        const response = await fetch("/messages");
+        const data = await response.text();
+        document.getElementById("chat-box").innerHTML = data;
+    }
+    setInterval(loadMessages, 3000);
+    </script>
 </div>
-
-<script>
-
-async function loadMessages() {
-
-    const response = await fetch("/messages");
-
-    const data = await response.text();
-
-    document.getElementById("chat-box").innerHTML = data;
-}
-
-setInterval(loadMessages, 3000);
-
-</script>
 
 </body>
 </html>
