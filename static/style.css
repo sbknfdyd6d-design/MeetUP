@@ -10,6 +10,18 @@ body {
     padding-top: 50px;
 }
 
+.container-small {
+    width: 15%;
+    min-width: 340px;
+    margin: auto;
+    padding-top: 50px;
+}
+
+.container-small input {
+    width: 100%;
+    max-width: 340px;
+}
+
 button {
     background: gold;
     color: black;
@@ -30,6 +42,17 @@ textarea {
     box-sizing: border-box;
 }
 
+.date-time-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.date-time-row input {
+    flex: 1;
+    margin-top: 0;
+}
+
 .event-card {
     background: #1e1e1e;
     padding: 20px;
@@ -37,20 +60,17 @@ textarea {
     border-radius: 10px;
 }
 
-input.datum,
-input.uhr {
-    width:20%;
-    display: inline-block;
-    position: middle;
-}
-
-input.titel,
-input.beschreibung {
-    width: 374px;
-    display: block;
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
     margin-top: 10px;
 }
 
-.but {
-    margin-top: 10px;
+.button-row a {
+    display: contents;
+}
+
+.button-row button {
+    flex: 1;
 }
