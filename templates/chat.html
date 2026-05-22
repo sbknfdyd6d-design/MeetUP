@@ -14,8 +14,10 @@
 
     <form method="POST">
         <input name="text" placeholder="Nachricht" required>
-        <button type="submit">Senden</button>
-        <button class="but" type="button" onclick='window.location.href="{{ url_for("index") }}";'>Home</button>
+        <div class="button-row">
+            <button type="submit">Senden</button>
+            <button class="but" type="button" onclick='window.location.href="{{ url_for("index") }}";'>Home</button>
+        </div>
     </form>
 
     <hr>
