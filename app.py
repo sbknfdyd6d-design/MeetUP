@@ -103,7 +103,7 @@ def create_event():
             title=request.form["title"],
             date=request.form["date"],
             time=request.form["time"],
-            description=request.form["description"]
+            description=request.form["description"],
             money=request.form["money"]
         )
         db.session.add(new_event)
