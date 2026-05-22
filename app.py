@@ -32,7 +32,7 @@ class Event(db.Model):
     date = db.Column(db.String(50), nullable=False)
     time = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text)
-    money = db.Column(db.String(20))
+    money = db.Column(db.Text)
 
 
 class Message(db.Model):
