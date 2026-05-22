@@ -104,6 +104,7 @@ def create_event():
             date=request.form["date"],
             time=request.form["time"],
             description=request.form["description"]
+            money=request.form["money"]
         )
         db.session.add(new_event)
         db.session.commit()
