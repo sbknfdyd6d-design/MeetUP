@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Event erstellen</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" href="{{ url_for('static', filename='meetuplogo.svg') }}">
+    <link rel="icon" href="{{ url_for('static', filename='MeetUpLogo.png') }}">
 </head>
 <body>
 
@@ -21,11 +21,13 @@
             <input type="time" name="time" required>
         </div>
 
+
         <input name="description" placeholder="Beschreibung">
 
-        <button class="but" type="submit">Erstellen</button>
-        <button class="but" type="button" onclick='window.location.href="{{ url_for("index") }}";'>Abbrechen</button>
-
+        <div class="button-row">
+            <button class="but" type="submit">Erstellen</button>
+            <button class="but" type="button" onclick='window.location.href="{{ url_for("index") }}";'>Abbrechen</button>
+        </div>
     </form>
 
 </div>
