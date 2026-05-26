@@ -1,7 +1,11 @@
 import os
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash, check_password_hash
+from flask_bcrypt import Bcrypt
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from markupsafe import escape
 
 app = Flask(__name__)
@@ -12,18 +16,24 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR, 'ins
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+login_manager.login_message_category = 'info'
 
 
-class User(db.Model):
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
+# ---------- Models ----------
+
+class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
 
 
 class Event(db.Model):
@@ -32,7 +42,6 @@ class Event(db.Model):
     date = db.Column(db.String(50), nullable=False)
     time = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text)
-    money = db.Column(db.Text)
 
 
 class Message(db.Model):
@@ -41,91 +50,121 @@ class Message(db.Model):
     text = db.Column(db.Text, nullable=False)
 
 
+# ---------- Forms ----------
+
+class RegistrationForm(FlaskForm):
+    username = StringField('Benutzername',
+                           validators=[DataRequired(), Length(min=2, max=20)])
+    email = StringField('E-Mail',
+                        validators=[DataRequired(), Email()])
+    password = PasswordField('Passwort',
+                             validators=[DataRequired()])
+    confirm_password = PasswordField('Passwort bestätigen',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Registrieren')
+
+    def validate_username(self, username):
+        user = User.query.filter_by(username=username.data).first()
+        if user:
+            raise ValidationError('Dieser Benutzername ist bereits vergeben.')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user:
+            raise ValidationError('Diese E-Mail-Adresse ist bereits registriert.')
+
+
+class LoginForm(FlaskForm):
+    email = StringField('E-Mail',
+                        validators=[DataRequired(), Email()])
+    password = PasswordField('Passwort',
+                             validators=[DataRequired()])
+    remember = BooleanField('Angemeldet bleiben')
+    submit = SubmitField('Einloggen')
+
+
 # ---------- Auth ----------
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    error = None
-    if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        if not username or not password:
-            error = "Bitte alle Felder ausfüllen."
-        elif User.query.filter_by(username=username).first():
-            error = "Benutzername bereits vergeben."
-        else:
-            user = User(username=username)
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
-            session["username"] = username
-            return redirect(url_for("index"))
-    return render_template("register.html", error=error)
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user = User(username=form.username.data, email=form.email.data, password=hashed_pw)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Konto für {form.username.data} erstellt! Du kannst dich jetzt einloggen.', 'success')
+        return redirect(url_for('login'))
+    return render_template("register.html", title='Registrieren', form=form)
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    error = None
-    if request.method == "POST":
-        username = request.form["username"].strip()
-        password = request.form["password"]
-        user = User.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            session["username"] = username
-            return redirect(url_for("index"))
-        error = "Falscher Benutzername oder Passwort."
-    return render_template("login.html", error=error)
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        if user and bcrypt.check_password_hash(user.password, form.password.data):
+            login_user(user, remember=form.remember.data)
+            next_page = request.args.get('next')
+            flash('Erfolgreich eingeloggt!', 'success')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Login fehlgeschlagen. Bitte E-Mail und Passwort prüfen.', 'danger')
+    return render_template("login.html", title='Login', form=form)
 
 
 @app.route("/logout")
 def logout():
-    session.pop("username", None)
-    return redirect(url_for("index"))
+    logout_user()
+    return redirect(url_for('index'))
 
 
 # ---------- Pages ----------
 
 @app.route("/")
 def index():
-    return render_template("index.html", username=session.get("username"))
+    return render_template("index.html")
 
 
 @app.route("/events")
+@login_required
 def events():
     all_events = Event.query.all()
     return render_template("events.html", events=all_events)
 
 
 @app.route("/create", methods=["GET", "POST"])
+@login_required
 def create_event():
     if request.method == "POST":
         new_event = Event(
             title=request.form["title"],
             date=request.form["date"],
             time=request.form["time"],
-            description=request.form["description"],
-            money=request.form["money"]
+            description=request.form["description"]
         )
         db.session.add(new_event)
         db.session.commit()
-        return redirect("/events")
+        flash('Event wurde erstellt!', 'success')
+        return redirect(url_for('events'))
     return render_template("create_event.html")
 
 
 @app.route("/chat", methods=["GET", "POST"])
+@login_required
 def chat():
-    if "username" not in session:
-        return redirect(url_for("login"))
-
     if request.method == "POST":
         text = request.form["text"]
-        new_message = Message(username=session["username"], text=text)
+        new_message = Message(username=current_user.username, text=text)
         db.session.add(new_message)
         db.session.commit()
-        return redirect("/chat")
-
+        return redirect(url_for('chat'))
     messages = Message.query.all()
-    return render_template("chat.html", messages=messages, username=session["username"])
+    return render_template("chat.html", messages=messages)
 
 
 @app.route("/messages")
@@ -143,11 +182,13 @@ def messages():
 
 
 @app.route("/delete/<int:event_id>", methods=["POST"])
+@login_required
 def delete_event(event_id):
     event = Event.query.get_or_404(event_id)
     db.session.delete(event)
     db.session.commit()
-    return redirect("/events")
+    flash('Event wurde gelöscht.', 'success')
+    return redirect(url_for('events'))
 
 
 with app.app_context():
