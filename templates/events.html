@@ -12,26 +12,28 @@
 
     <h1>Alle Events</h1>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <a href="{{ url_for('index') }}">
         <button type="button">Home</button>
     </a>
 
     {% if events %}
         {% for event in events %}
-
             <div class="event-card">
-
                 <h2>{{ event.title }}</h2>
-
                 <p>{{ event.date }} {{ event.time }}</p>
-
-                <p>{{ event.description }} {{ event.money }}</p>
-
+                <p>{{ event.description }}</p>
                 <form action="{{ url_for('delete_event', event_id=event.id) }}" method="post" onsubmit="return confirm('Sind Sie sicher, dass Sie dieses Event löschen möchten?');">
                     <button type="submit">Löschen</button>
                 </form>
             </div>
-
         {% endfor %}
     {% else %}
         <p>Keine Events geplant.</p>

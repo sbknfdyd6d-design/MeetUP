@@ -2,29 +2,73 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Registrieren – MeetUP</title>
+    <title>{{ title }} – MeetUP</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" href="{{ url_for('static', filename='MeetUpLogo.png') }}">
 </head>
 <body>
-  
+
 <div class="container-small">
     <h1>Registrieren</h1>
- 
-    {% if error %}
-        <p style="color: salmon;">{{ error }}</p>
-    {% endif %}
- 
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <form method="POST">
-        <input type="text" name="username" placeholder="Benutzername" required autofocus>
-        <input type="password" name="password" placeholder="Passwort" required>
+        {{ form.hidden_tag() }}
+
+        <div>
+            {{ form.username.label }}
+            {{ form.username(placeholder="Benutzername") }}
+            {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                    <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div>
+            {{ form.email.label }}
+            {{ form.email(placeholder="name@beispiel.de") }}
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div>
+            {{ form.password.label }}
+            {{ form.password(placeholder="Passwort") }}
+            {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                    <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div>
+            {{ form.confirm_password.label }}
+            {{ form.confirm_password(placeholder="Passwort bestätigen") }}
+            {% if form.confirm_password.errors %}
+                {% for error in form.confirm_password.errors %}
+                    <span class="field-error">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+
         <div class="button-row">
-            <button class="but" type="submit">Erstellen</button>
+            {{ form.submit(class="but") }}
             <a href="{{ url_for('login') }}"><button class="but" type="button">Login</button></a>
             <a href="{{ url_for('index') }}"><button class="but" type="button">Abbrechen</button></a>
         </div>
     </form>
 </div>
- 
+
 </body>
 </html>

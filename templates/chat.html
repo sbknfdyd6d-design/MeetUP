@@ -10,7 +10,7 @@
 
 <div class="container">
     <h1>Gruppenchat</h1>
-    <p style="color: gold;">Eingeloggt als <strong>{{ username }}</strong></p>
+    <p style="color: gold;">Eingeloggt als <strong>{{ current_user.username }}</strong></p>
 
     <form method="POST">
         <input name="text" placeholder="Nachricht" required>

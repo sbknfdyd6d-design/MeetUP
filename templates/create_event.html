@@ -12,6 +12,14 @@
 
     <h1>Event erstellen</h1>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <form method="POST">
 
         <input type="text" name="title" placeholder="Titel" required>
@@ -21,10 +29,7 @@
             <input type="time" name="time" required>
         </div>
 
-        <div class="description-money-row">
-            <input name="description" placeholder="Beschreibung">
-            <input name="money" placeholder="Geld">
-        </div>
+        <input name="description" placeholder="Beschreibung">
 
         <div class="button-row">
             <button class="but" type="submit">Erstellen</button>
