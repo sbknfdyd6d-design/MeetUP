@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, flash, url_for
+from flask import Flask, render_template, request, redirect, flash, url_for, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
@@ -9,7 +9,7 @@ from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationE
 from markupsafe import escape
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "change-me-in-production")
+app.secret_key = os.environ.get("SECRET_KEY", "8ca3fe1440256422415517acf20b0881")
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(BASE_DIR, 'instance', 'database.db')}"
@@ -26,8 +26,7 @@ login_manager.login_message_category = 'info'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
-# ---------- Models ----------
+#
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -42,6 +41,7 @@ class Event(db.Model):
     date = db.Column(db.String(50), nullable=False)
     time = db.Column(db.String(20), nullable=False)
     description = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 class Message(db.Model):
@@ -49,8 +49,7 @@ class Message(db.Model):
     username = db.Column(db.String(50), nullable=False)
     text = db.Column(db.Text, nullable=False)
 
-
-# ---------- Forms ----------
+#Formen
 
 class RegistrationForm(FlaskForm):
     username = StringField('Benutzername',
@@ -83,7 +82,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Einloggen')
 
 
-# ---------- Auth ----------
+#Anmeldung
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -123,7 +122,7 @@ def logout():
     return redirect(url_for('index'))
 
 
-# ---------- Pages ----------
+#Seiten
 
 @app.route("/")
 def index():
@@ -145,7 +144,8 @@ def create_event():
             title=request.form["title"],
             date=request.form["date"],
             time=request.form["time"],
-            description=request.form["description"]
+            description=request.form["description"],
+            user_id=current_user.id 
         )
         db.session.add(new_event)
         db.session.commit()
@@ -185,6 +185,8 @@ def messages():
 @login_required
 def delete_event(event_id):
     event = Event.query.get_or_404(event_id)
+    if event.user_id != current_user.id:
+        abort(403)
     db.session.delete(event)
     db.session.commit()
     flash('Event wurde gelöscht.', 'success')
